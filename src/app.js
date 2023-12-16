@@ -11,11 +11,7 @@ app.use(morgan('dev'));
 app.use(helmet());
 app.use(compression());
 app.use(express.json());
-app.use(
-  express.urlencoded({
-    extended: true,
-  })
-);
+app.use(express.urlencoded({ extended: true }));
 
 // init dbs
 require('./databases/init.mongodb');
@@ -26,10 +22,9 @@ app.use('/', require('./routes'));
 
 // handle errors global
 app.use((error, req, res, next) => {
-  const statusCode = error.status;
-  return res.status(statusCode).json({
+  return res.status(error.status).json({
     status: 'error',
-    code: statusCode,
+    code: error.status,
     message: error.message || 'Internal Server Error',
   });
 });

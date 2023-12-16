@@ -3,10 +3,29 @@
 ### sign up
 POST {{url_dev}}shop/signup
 Content-Type: application/json
-x-api-key: de0a94b051903b79a6565085debbb6406c9e3ef23654449fcd638f974933efa5e93f9c31219ed72fb6f77dbcd324dc0e7716445b1cbeead0210f3c588e218858
+x-api-key: 065b5cd49e84822f866a1b4123d18628d8cb1bb0783e61b09d436ac946da0ad3a23a77e4c08d2804b2881c3ae85588ad3abf66a6c5a47093990e5665a89b4229
 
 {
     "name": "Shop TIPS",
-    "email": "shoptipjs04@gmail.com",
+    "email": "shoptipjs06@gmail.com",
     "password": "abc123"
 }
+
+### login
+POST {{url_dev}}shop/login
+Content-Type: application/json
+x-api-key: 065b5cd49e84822f866a1b4123d18628d8cb1bb0783e61b09d436ac946da0ad3a23a77e4c08d2804b2881c3ae85588ad3abf66a6c5a47093990e5665a89b4229
+
+{
+    "email": "shoptipjs06@gmail.com",
+    "password": "abc123"
+}
+
+
+### logout
+POST {{url_dev}}shop/logout
+Content-Type: application/json
+x-api-key: 065b5cd49e84822f866a1b4123d18628d8cb1bb0783e61b09d436ac946da0ad3a23a77e4c08d2804b2881c3ae85588ad3abf66a6c5a47093990e5665a89b4229
+x-client-id: 657d8c218c1635f2692e680e
+authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTdkOGMyMThjMTYzNWYyNjkyZTY4MGUiLCJlbWFpbCI6InNob3B0aXBqczA2QGdtYWlsLmNvbSIsImlhdCI6MTcwMjcyODM2MCwiZXhwIjoxNzAyOTAxMTYwfQ.7QXDzDZy0WZ5Z-Y0YE1Mnj8ca3NXaMhGdEnvaFS_q5c
+

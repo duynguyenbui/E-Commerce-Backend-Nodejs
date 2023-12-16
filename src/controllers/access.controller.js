@@ -4,6 +4,20 @@ const AccessService = require('../services/access.service');
 const { OK, CREATED } = require('../core/success.response');
 
 class AccessController {
+  logout = async (req, res, next) => {
+    new OK({
+      message: 'You have been logged out successfully',
+      metadata: await AccessService.logout({ keyStore: req.keyStore }),
+    }).send(res);
+  };
+
+  login = async (req, res, next) => {
+    new OK({
+      message: 'Login Successfully',
+      metadata: await AccessService.login(req.body),
+    }).send(res);
+  };
+
   signUp = async (req, res, next) => {
     console.log(`[P]:::signUp:::`, req.body);
     new CREATED({

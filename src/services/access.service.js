@@ -5,12 +5,16 @@ const crypto = require('crypto');
 const {
   InternalServerError,
   BadRequestError,
+  ConfictRequestError,
+  AuthFailureError,
 } = require('../core/error.response');
 const KeyTokenService = require('./keyToken.service');
 const shopModel = require('../models/shop.model');
 const { createTokenPair } = require('../auth/authUtils');
-const { CREATED, OK } = require('../core/success.response');
+const { OK } = require('../core/success.response');
 const { getInfoData } = require('../utils');
+const { findByEmail } = require('./shop.service');
+
 const RoleShop = {
   SHOP: 'SHOP',
   WRITER: 'WRITER',
@@ -19,6 +23,47 @@ const RoleShop = {
 };
 
 class AccessService {
+  static logout = async ({ keyStore }) => {
+    const delKey = await KeyTokenService.removeTokenById({
+      id: keyStore._id,
+    });
+    console.log({ delKey });
+    return {
+      delKey,
+    };
+  };
+
+  static login = async ({ email, password, refreshToken = null }) => {
+    const foundShop = await findByEmail({ email });
+    console.log(foundShop);
+    if (!foundShop) throw new BadRequestError('Shop not registered');
+
+    const match = bcrypt.compare(password, foundShop.password);
+    if (!match) throw new AuthFailureError('Authentication Error');
+
+    const privateKey = crypto.randomBytes(64).toString('hex');
+    const publicKey = crypto.randomBytes(64).toString('hex');
+
+    const { _id: userId } = foundShop;
+
+    const tokens = await createTokenPair(
+      { userId, email },
+      publicKey,
+      privateKey
+    );
+
+    await KeyTokenService.createKeyToken({
+      userId,
+      privateKey,
+      publicKey,
+      refreshToken: tokens.refreshToken,
+    });
+    return {
+      shop: getInfoData(['_id', 'name', 'email'], foundShop),
+      tokens,
+    };
+  };
+
   static signUp = async ({ name, email, password }) => {
     const holder = await shopModel.findOne({ email }).lean();
 
@@ -46,7 +91,7 @@ class AccessService {
       });
 
       if (!keyStore) {
-        throw new InternalServerError('Cannot create public key');
+        throw new InternalServerError('Cannot create public key', 500);
       }
 
       const tokens = await createTokenPair(
@@ -63,7 +108,7 @@ class AccessService {
       };
     }
 
-    return new OK();
+    throw ConfictRequestError('Created! But cannot create tokens', 200);
   };
 }
 
