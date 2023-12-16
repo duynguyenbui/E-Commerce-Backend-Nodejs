@@ -7,11 +7,12 @@ const {
   BadRequestError,
   ConfictRequestError,
   AuthFailureError,
+  ForbiddenError,
 } = require('../core/error.response');
 const KeyTokenService = require('./keyToken.service');
 const shopModel = require('../models/shop.model');
-const { createTokenPair } = require('../auth/authUtils');
-const { OK } = require('../core/success.response');
+const { createTokenPair, verifyJWT } = require('../auth/authUtils');
+
 const { getInfoData } = require('../utils');
 const { findByEmail } = require('./shop.service');
 
@@ -23,6 +24,56 @@ const RoleShop = {
 };
 
 class AccessService {
+  static handleRefreshToken = async (refreshToken) => {
+    const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken);
+    console.log('Toi da toi day ===> ');
+    console.log(foundToken);
+    if (foundToken) {
+      const { userId, email } = await verifyJWT(
+        refreshToken,
+        foundToken.privateKey
+      );
+      console.log({ userId, email });
+
+      await KeyTokenService.deleteKeyById(userId);
+      throw new Error('Forbidden Error');
+    }
+
+    const holderToken = await KeyTokenService.findByRefreshToken(refreshToken);
+
+    if (!holderToken) {
+      throw new AuthFailureError('Shop not registered 1');
+    }
+
+    const { userId, email } = await verifyJWT(
+      refreshToken,
+      holderToken.privateKey
+    );
+
+    const foundShop = await findByEmail({ email });
+    if (!foundShop) throw new AuthFailureError('Shop not registered 2');
+
+    const tokens = await createTokenPair(
+      { userId, email },
+      holderToken.publicKey,
+      holderToken.privateKey
+    );
+
+    await holderToken.updateOne({
+      $set: {
+        refreshToken: tokens.refreshToken,
+      },
+      $addToSet: {
+        refreshTokensUsed: refreshToken, // da duoc su dung de lay token
+      },
+    });
+
+    return {
+      user: { userId, email },
+      tokens,
+    };
+  };
+
   static logout = async ({ keyStore }) => {
     const delKey = await KeyTokenService.removeTokenById({
       id: keyStore._id,

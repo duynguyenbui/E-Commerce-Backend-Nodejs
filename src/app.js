@@ -22,10 +22,11 @@ app.use('/', require('./routes'));
 
 // handle errors global
 app.use((error, req, res, next) => {
-  return res.status(error.status).json({
+  const statusCode = error.status || 500;
+  return res.status(statusCode).json({
     status: 'error',
-    code: error.status,
-    message: error.message || 'Internal Server Error',
+    code: statusCode,
+    message: error || 'Internal Server Error',
   });
 });
 
